@@ -24,5 +24,14 @@
     "fabricloader": ">=${loader_version}",
     "fabric": "*",
     "minecraft": "${minecraft_version}"
+  },
+  "custom": {
+    "modmenu": {
+      "parent": {
+        "id": "great_big_world",
+        "name": "Great Big World",
+        "description": ""
+      }
+    }
   }
 }
