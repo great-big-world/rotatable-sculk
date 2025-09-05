@@ -1,0 +1,54 @@
+{
+  "variants": {
+    "can_summon=false,facing=up": {
+      "model": "minecraft:block/sculk_shrieker"
+    },
+    "can_summon=true,facing=up": {
+      "model": "minecraft:block/sculk_shrieker_can_summon"
+    },
+    "can_summon=false,facing=down": {
+      "model": "minecraft:block/sculk_shrieker",
+      "x": 180
+    },
+    "can_summon=true,facing=down": {
+      "model": "minecraft:block/sculk_shrieker",
+      "x": 180
+    },
+    "can_summon=false,facing=east": {
+      "model": "minecraft:block/sculk_shrieker",
+      "x": 90,
+      "y": 90
+    },
+    "can_summon=true,facing=east": {
+      "model": "minecraft:block/sculk_shrieker_can_summon",
+      "x": 90,
+      "y": 90
+    },
+    "can_summon=false,facing=west": {
+      "model": "minecraft:block/sculk_shrieker",
+      "x": 270,
+      "y": 90
+    },
+    "can_summon=true,facing=west": {
+      "model": "minecraft:block/sculk_shrieker_can_summon",
+      "x": 270,
+      "y": 90
+    },
+    "can_summon=false,facing=north": {
+      "model": "minecraft:block/sculk_shrieker",
+      "x": 90
+    },
+    "can_summon=true,facing=north": {
+      "model": "minecraft:block/sculk_shrieker_can_summon",
+      "x": 90
+    },
+    "can_summon=false,facing=south": {
+      "model": "minecraft:block/sculk_shrieker",
+      "x": 270
+    },
+    "can_summon=true,facing=south": {
+      "model": "minecraft:block/sculk_shrieker_can_summon",
+      "x": 270
+    }
+  }
+}

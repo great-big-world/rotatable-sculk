@@ -4,6 +4,10 @@
   "package": "dev.creoii.rotatablesculk.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "CalibratedSculkSensorBlockMixin",
+    "SculkBlockMixin",
+    "SculkSensorBlockMixin",
+    "SculkShriekerBlockMixin"
   ],
   "client": [
   ],
