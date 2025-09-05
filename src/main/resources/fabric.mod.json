@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "rotatablesculk",
+  "version": "${version}",
+
+  "name": "Rotatable Sculk",
+  "description": "Makes Sculk blocks generate & place in any direction",
+  "authors": [],
+  "contact": {},
+
+  "license": "All-Rights-Reserved",
+  "icon": "assets/rotatablesculk/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "client": ["dev.creoii.rotatablesculk.client.RotatableSculkClient"],
+    "main": ["dev.creoii.rotatablesculk.RotatableSculk"]
+  },
+
+  "mixins": [
+    "rotatablesculk.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
