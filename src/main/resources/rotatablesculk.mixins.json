@@ -7,9 +7,13 @@
     "CalibratedSculkSensorBlockMixin",
     "SculkBlockMixin",
     "SculkSensorBlockMixin",
-    "SculkShriekerBlockMixin"
+    "SculkShriekerBlockMixin",
+    "ShriekParticleEffectMixin"
   ],
   "client": [
+    "client.ShriekParticleFactoryMixin",
+    "client.ShriekParticleMixin",
+    "client.WorldEventHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
