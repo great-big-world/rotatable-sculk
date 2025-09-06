@@ -20,6 +20,8 @@
     "rotatablesculk.mixins.json"
   ],
 
+  "accessWidener": "rotatable_sculk.accesswidener",
+
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric": "*",

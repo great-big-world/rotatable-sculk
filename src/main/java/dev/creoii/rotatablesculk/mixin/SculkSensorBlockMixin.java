@@ -4,8 +4,15 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
+import dev.creoii.rotatablesculk.util.SculkRotationHelper;
 import net.minecraft.block.*;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.SculkSensorBlockEntity;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityCollisionHandler;
+import net.minecraft.entity.EntityType;
 import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
@@ -13,10 +20,12 @@ import net.minecraft.state.property.Property;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
-import org.spongepowered.asm.mixin.Final;
+import net.minecraft.world.World;
+import net.minecraft.world.event.GameEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -27,13 +36,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(SculkSensorBlock.class)
 public abstract class SculkSensorBlockMixin extends BlockWithEntity {
-    @Shadow @Final private static VoxelShape OUTLINE_SHAPE;
+    @Shadow
+    public static boolean isInactive(BlockState state) {
+        throw new IllegalStateException();
+    }
+
     @Unique private static final EnumProperty<Direction> FACING = Properties.FACING;
-    @Unique private static final VoxelShape DOWN_OUTLINE_SHAPE = Block.createColumnShape(16f, 8f, 16f);
-    @Unique private static final VoxelShape EAST_OUTLINE_SHAPE = Block.createCuboidShape(0f, 0f, 0f, 8f, 16f, 16f);
-    @Unique private static final VoxelShape WEST_OUTLINE_SHAPE = Block.createCuboidShape(8f, 0f, 0f, 16f, 16f, 16f);
-    @Unique private static final VoxelShape SOUTH_OUTLINE_SHAPE = Block.createCuboidShape(0f, 0f, 0f, 16f, 16f, 8f);
-    @Unique private static final VoxelShape NORTH_OUTLINE_SHAPE = Block.createCuboidShape(0f, 0f, 8f, 16f, 16f, 16f);
 
     protected SculkSensorBlockMixin(Settings settings) {
         super(settings);
@@ -65,6 +73,25 @@ public abstract class SculkSensorBlockMixin extends BlockWithEntity {
     }
 
     @Override
+    protected void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity, EntityCollisionHandler handler) {
+        if (state.get(FACING) == Direction.UP)
+            return;
+        Box box = SculkRotationHelper.getBoxForDirection(state.get(FACING)).offset(pos);
+        if (box.intersects(entity.getBoundingBox())) {
+            if (!world.isClient() && isInactive(state) && entity.getType() != EntityType.WARDEN) {
+                BlockEntity blockEntity = world.getBlockEntity(pos);
+                if (blockEntity instanceof SculkSensorBlockEntity sculkSensorBlockEntity) {
+                    if (world instanceof ServerWorld serverWorld) {
+                        if (sculkSensorBlockEntity.getVibrationCallback().accepts(serverWorld, pos, GameEvent.STEP, GameEvent.Emitter.of(state))) {
+                            sculkSensorBlockEntity.getEventListener().forceListen(serverWorld, GameEvent.STEP, GameEvent.Emitter.of(entity), entity.getPos());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
     public BlockState rotate(BlockState state, BlockRotation rotation) {
         return state.with(FACING, rotation.rotate(state.get(FACING)));
     }
@@ -77,12 +104,12 @@ public abstract class SculkSensorBlockMixin extends BlockWithEntity {
     @Unique
     private static VoxelShape getShape(Direction facing) {
         return switch (facing) {
-            case DOWN -> DOWN_OUTLINE_SHAPE;
-            case UP -> OUTLINE_SHAPE;
-            case NORTH -> NORTH_OUTLINE_SHAPE;
-            case SOUTH -> SOUTH_OUTLINE_SHAPE;
-            case WEST -> WEST_OUTLINE_SHAPE;
-            case EAST -> EAST_OUTLINE_SHAPE;
+            case DOWN -> SculkRotationHelper.DOWN_OUTLINE_SHAPE;
+            case UP -> SculkSensorBlock.OUTLINE_SHAPE;
+            case NORTH -> SculkRotationHelper.NORTH_OUTLINE_SHAPE;
+            case SOUTH -> SculkRotationHelper.SOUTH_OUTLINE_SHAPE;
+            case WEST -> SculkRotationHelper.WEST_OUTLINE_SHAPE;
+            case EAST -> SculkRotationHelper.EAST_OUTLINE_SHAPE;
         };
     }
 }
