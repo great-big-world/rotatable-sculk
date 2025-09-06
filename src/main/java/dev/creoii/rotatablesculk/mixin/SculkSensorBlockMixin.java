@@ -72,6 +72,12 @@ public abstract class SculkSensorBlockMixin extends BlockWithEntity {
         return instance.offset(state.get(FACING).getOpposite());
     }
 
+    @Inject(method = "onSteppedOn", at = @At("HEAD"), cancellable = true)
+    private void gbw$fixOnSteppedOnForFacing(World world, BlockPos pos, BlockState state, Entity entity, CallbackInfo ci) {
+        if (state.get(FACING) != Direction.UP)
+            ci.cancel();
+    }
+
     @Override
     protected void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity, EntityCollisionHandler handler) {
         if (state.get(FACING) == Direction.UP)

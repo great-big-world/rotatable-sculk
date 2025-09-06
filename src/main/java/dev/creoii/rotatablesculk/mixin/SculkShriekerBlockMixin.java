@@ -68,6 +68,12 @@ public abstract class SculkShriekerBlockMixin extends BlockWithEntity {
         cir.setReturnValue(getShape(state.get(FACING)));
     }
 
+    @Inject(method = "onSteppedOn", at = @At("HEAD"), cancellable = true)
+    private void gbw$fixOnSteppedOnForFacing(World world, BlockPos pos, BlockState state, Entity entity, CallbackInfo ci) {
+        if (state.get(FACING) != Direction.UP)
+            ci.cancel();
+    }
+
     @Override
     protected void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity, EntityCollisionHandler handler) {
         if (state.get(FACING) == Direction.UP)
