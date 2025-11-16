@@ -75,7 +75,7 @@ public abstract class SculkShriekerBlockMixin extends BlockWithEntity {
     }
 
     @Override
-    protected void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity, EntityCollisionHandler handler) {
+    protected void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity, EntityCollisionHandler handler, boolean bl) {
         if (state.get(FACING) == Direction.UP)
             return;
         Box box = SculkRotationHelper.getBoxForDirection(state.get(FACING)).offset(pos);

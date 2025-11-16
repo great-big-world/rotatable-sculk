@@ -79,18 +79,16 @@ public abstract class SculkSensorBlockMixin extends BlockWithEntity {
     }
 
     @Override
-    protected void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity, EntityCollisionHandler handler) {
+    protected void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity, EntityCollisionHandler handler, boolean bl) {
         if (state.get(FACING) == Direction.UP)
             return;
         Box box = SculkRotationHelper.getBoxForDirection(state.get(FACING)).offset(pos);
-        if (box.intersects(entity.getBoundingBox())) {
-            if (!world.isClient() && isInactive(state) && entity.getType() != EntityType.WARDEN) {
-                BlockEntity blockEntity = world.getBlockEntity(pos);
-                if (blockEntity instanceof SculkSensorBlockEntity sculkSensorBlockEntity) {
-                    if (world instanceof ServerWorld serverWorld) {
-                        if (sculkSensorBlockEntity.getVibrationCallback().accepts(serverWorld, pos, GameEvent.STEP, GameEvent.Emitter.of(state))) {
-                            sculkSensorBlockEntity.getEventListener().forceListen(serverWorld, GameEvent.STEP, GameEvent.Emitter.of(entity), entity.getPos());
-                        }
+        if (box.intersects(entity.getBoundingBox()) && !world.isClient() && isInactive(state) && entity.getType() != EntityType.WARDEN) {
+            BlockEntity blockEntity = world.getBlockEntity(pos);
+            if (blockEntity instanceof SculkSensorBlockEntity sculkSensorBlockEntity) {
+                if (world instanceof ServerWorld serverWorld) {
+                    if (sculkSensorBlockEntity.getVibrationCallback().accepts(serverWorld, pos, GameEvent.STEP, GameEvent.Emitter.of(state))) {
+                        sculkSensorBlockEntity.getEventListener().forceListen(serverWorld, GameEvent.STEP, GameEvent.Emitter.of(entity), entity.getEntityPos());
                     }
                 }
             }
