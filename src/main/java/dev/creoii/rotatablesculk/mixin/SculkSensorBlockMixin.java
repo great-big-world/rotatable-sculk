@@ -5,27 +5,31 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.creoii.rotatablesculk.util.SculkRotationHelper;
-import net.minecraft.block.*;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.SculkSensorBlockEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityCollisionHandler;
-import net.minecraft.entity.EntityType;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.EnumProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.state.property.Property;
-import net.minecraft.util.BlockMirror;
-import net.minecraft.util.BlockRotation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
-import net.minecraft.world.event.GameEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.InsideBlockEffectApplier;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.SculkSensorBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.SculkSensorBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -35,60 +39,60 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(SculkSensorBlock.class)
-public abstract class SculkSensorBlockMixin extends BlockWithEntity {
+public abstract class SculkSensorBlockMixin extends BaseEntityBlock {
     @Shadow
-    public static boolean isInactive(BlockState state) {
+    public static boolean canActivate(BlockState state) {
         throw new IllegalStateException();
     }
 
-    @Unique private static final EnumProperty<Direction> FACING = Properties.FACING;
+    @Unique private static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
 
-    protected SculkSensorBlockMixin(Settings settings) {
+    protected SculkSensorBlockMixin(Properties settings) {
         super(settings);
     }
 
-    @WrapOperation(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;with(Lnet/minecraft/state/property/Property;Ljava/lang/Comparable;)Ljava/lang/Object;", ordinal = 0))
+    @WrapOperation(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;setValue(Lnet/minecraft/world/level/block/state/properties/Property;Ljava/lang/Comparable;)Ljava/lang/Object;", ordinal = 0))
     private <S, T extends Comparable<T>, V extends T> S gbw$initFacingDefaultState(BlockState instance, Property<T> property, Comparable<V> comparable, Operation<S> original) {
-        return original.call(instance.with(FACING, Direction.UP), property, comparable);
+        return original.call(instance.setValue(FACING, Direction.UP), property, comparable);
     }
 
-    @ModifyReturnValue(method = "getPlacementState", at = @At("RETURN"))
-    private BlockState gbw$fixFacingPlacementState(BlockState original, @Local(argsOnly = true) ItemPlacementContext ctx) {
-        return original.with(FACING, ctx.getSide());
+    @ModifyReturnValue(method = "getStateForPlacement", at = @At("RETURN"))
+    private BlockState gbw$fixFacingPlacementState(BlockState original, @Local(argsOnly = true) BlockPlaceContext ctx) {
+        return original.setValue(FACING, ctx.getClickedFace());
     }
 
-    @Inject(method = "appendProperties", at = @At("TAIL"))
-    private void gbw$appendFacingProperty(StateManager.Builder<Block, BlockState> builder, CallbackInfo ci) {
+    @Inject(method = "createBlockStateDefinition", at = @At("TAIL"))
+    private void gbw$appendFacingProperty(StateDefinition.Builder<Block, BlockState> builder, CallbackInfo ci) {
         builder.add(FACING);
     }
 
-    @Inject(method = "getOutlineShape", at = @At("HEAD"), cancellable = true)
-    private void gbw$fixOutlineShapeForFacing(BlockState state, BlockView world, BlockPos pos, ShapeContext context, CallbackInfoReturnable<VoxelShape> cir) {
-        cir.setReturnValue(getShape(state.get(FACING)));
+    @Inject(method = "getShape", at = @At("HEAD"), cancellable = true)
+    private void gbw$fixOutlineShapeForFacing(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
+        cir.setReturnValue(getShape(state.getValue(FACING)));
     }
 
-    @WrapOperation(method = "updateNeighbors", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/math/BlockPos;down()Lnet/minecraft/util/math/BlockPos;"))
+    @WrapOperation(method = "updateNeighbours", at = @At(value = "INVOKE", target = "Lnet/minecraft/core/BlockPos;below()Lnet/minecraft/core/BlockPos;"))
     private static BlockPos gbw$fixUpdateNeighborsForFacing(BlockPos instance, Operation<BlockPos> original, @Local(argsOnly = true) BlockState state) {
-        return instance.offset(state.get(FACING).getOpposite());
+        return instance.relative(state.getValue(FACING).getOpposite());
     }
 
-    @Inject(method = "onSteppedOn", at = @At("HEAD"), cancellable = true)
-    private void gbw$fixOnSteppedOnForFacing(World world, BlockPos pos, BlockState state, Entity entity, CallbackInfo ci) {
-        if (state.get(FACING) != Direction.UP)
+    @Inject(method = "stepOn", at = @At("HEAD"), cancellable = true)
+    private void gbw$fixOnSteppedOnForFacing(Level world, BlockPos pos, BlockState state, Entity entity, CallbackInfo ci) {
+        if (state.getValue(FACING) != Direction.UP)
             ci.cancel();
     }
 
     @Override
-    protected void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity, EntityCollisionHandler handler, boolean bl) {
-        if (state.get(FACING) == Direction.UP)
+    protected void entityInside(BlockState state, Level world, BlockPos pos, Entity entity, InsideBlockEffectApplier handler, boolean bl) {
+        if (state.getValue(FACING) == Direction.UP)
             return;
-        Box box = SculkRotationHelper.getBoxForDirection(state.get(FACING)).offset(pos);
-        if (box.intersects(entity.getBoundingBox()) && !world.isClient() && isInactive(state) && entity.getType() != EntityType.WARDEN) {
+        AABB box = SculkRotationHelper.getBoxForDirection(state.getValue(FACING)).move(pos);
+        if (box.intersects(entity.getBoundingBox()) && !world.isClientSide() && canActivate(state) && entity.getType() != EntityType.WARDEN) {
             BlockEntity blockEntity = world.getBlockEntity(pos);
             if (blockEntity instanceof SculkSensorBlockEntity sculkSensorBlockEntity) {
-                if (world instanceof ServerWorld serverWorld) {
-                    if (sculkSensorBlockEntity.getVibrationCallback().accepts(serverWorld, pos, GameEvent.STEP, GameEvent.Emitter.of(state))) {
-                        sculkSensorBlockEntity.getEventListener().forceListen(serverWorld, GameEvent.STEP, GameEvent.Emitter.of(entity), entity.getEntityPos());
+                if (world instanceof ServerLevel serverWorld) {
+                    if (sculkSensorBlockEntity.getVibrationUser().canReceiveVibration(serverWorld, pos, GameEvent.STEP, GameEvent.Context.of(state))) {
+                        sculkSensorBlockEntity.getListener().forceScheduleVibration(serverWorld, GameEvent.STEP, GameEvent.Context.of(entity), entity.position());
                     }
                 }
             }
@@ -96,20 +100,20 @@ public abstract class SculkSensorBlockMixin extends BlockWithEntity {
     }
 
     @Override
-    public BlockState rotate(BlockState state, BlockRotation rotation) {
-        return state.with(FACING, rotation.rotate(state.get(FACING)));
+    public BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
     @Override
-    public BlockState mirror(BlockState state, BlockMirror mirror) {
-        return state.rotate(mirror.getRotation(state.get(FACING)));
+    public BlockState mirror(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
     }
 
     @Unique
     private static VoxelShape getShape(Direction facing) {
         return switch (facing) {
             case DOWN -> SculkRotationHelper.DOWN_OUTLINE_SHAPE;
-            case UP -> SculkSensorBlock.OUTLINE_SHAPE;
+            case UP -> SculkRotationHelper.SHAPE;
             case NORTH -> SculkRotationHelper.NORTH_OUTLINE_SHAPE;
             case SOUTH -> SculkRotationHelper.SOUTH_OUTLINE_SHAPE;
             case WEST -> SculkRotationHelper.WEST_OUTLINE_SHAPE;

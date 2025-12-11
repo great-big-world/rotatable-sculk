@@ -2,11 +2,11 @@ package dev.creoii.rotatablesculk.mixin.client;
 
 import dev.creoii.rotatablesculk.util.ExtendedShriekParticleEffect;
 import dev.creoii.rotatablesculk.util.SculkRotationHelper;
-import net.minecraft.client.particle.BillboardParticle;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ShriekParticle;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.Direction;
+import net.minecraft.client.particle.SingleQuadParticle;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.Direction;
 import org.joml.Quaternionf;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -14,11 +14,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(ShriekParticle.class)
-public abstract class ShriekParticleMixin extends BillboardParticle implements ExtendedShriekParticleEffect {
+public abstract class ShriekParticleMixin extends SingleQuadParticle implements ExtendedShriekParticleEffect {
     @Unique
     private Direction direction;
 
-    protected ShriekParticleMixin(ClientWorld world, double x, double y, double z, Sprite sprite) {
+    protected ShriekParticleMixin(ClientLevel world, double x, double y, double z, TextureAtlasSprite sprite) {
         super(world, x, y, z, sprite);
     }
 
@@ -31,12 +31,12 @@ public abstract class ShriekParticleMixin extends BillboardParticle implements E
     public void gbw$setDirection(Direction direction) {
         this.direction = direction;
         double[] velocities = SculkRotationHelper.getShriekParticleVelocities(direction);
-        velocityX = velocities[0];
-        velocityY = velocities[1];
-        velocityZ = velocities[2];
+        xd = velocities[0];
+        yd = velocities[1];
+        zd = velocities[2];
     }
 
-    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lorg/joml/Quaternionf;rotationYXZ(FFF)Lorg/joml/Quaternionf;"))
+    @Redirect(method = "extract", at = @At(value = "INVOKE", target = "Lorg/joml/Quaternionf;rotationYXZ(FFF)Lorg/joml/Quaternionf;"))
     private Quaternionf gbw$rotateShriekParticle(Quaternionf instance, float angleY, float angleX, float angleZ) {
         return switch (direction.getAxis()) {
             case X -> instance.rotationXYZ((float)Math.PI, -1.0472f, 0f);

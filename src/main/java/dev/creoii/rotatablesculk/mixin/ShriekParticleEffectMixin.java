@@ -1,12 +1,12 @@
 package dev.creoii.rotatablesculk.mixin;
 
 import dev.creoii.rotatablesculk.util.ExtendedShriekParticleEffect;
-import net.minecraft.particle.ShriekParticleEffect;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ShriekParticleOption;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
-@Mixin(ShriekParticleEffect.class)
+@Mixin(ShriekParticleOption.class)
 public class ShriekParticleEffectMixin implements ExtendedShriekParticleEffect {
     @Unique
     private Direction direction = Direction.UP;

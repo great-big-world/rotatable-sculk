@@ -1,30 +1,31 @@
 package dev.creoii.rotatablesculk.util;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.SculkSensorBlock;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SculkSensorBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 public final class SculkRotationHelper {
-    public static final VoxelShape DOWN_OUTLINE_SHAPE = Block.createColumnShape(16f, 8f, 16f);
-    public static final VoxelShape EAST_OUTLINE_SHAPE = Block.createCuboidShape(0f, 0f, 0f, 8f, 16f, 16f);
-    public static final VoxelShape WEST_OUTLINE_SHAPE = Block.createCuboidShape(8f, 0f, 0f, 16f, 16f, 16f);
-    public static final VoxelShape SOUTH_OUTLINE_SHAPE = Block.createCuboidShape(0f, 0f, 0f, 16f, 16f, 8f);
-    public static final VoxelShape NORTH_OUTLINE_SHAPE = Block.createCuboidShape(0f, 0f, 8f, 16f, 16f, 16f);
+    public static final VoxelShape SHAPE = Block.column(16f, 0f, 8f);
+    public static final VoxelShape DOWN_OUTLINE_SHAPE = Block.column(16f, 8f, 16f);
+    public static final VoxelShape EAST_OUTLINE_SHAPE = Block.box(0f, 0f, 0f, 8f, 16f, 16f);
+    public static final VoxelShape WEST_OUTLINE_SHAPE = Block.box(8f, 0f, 0f, 16f, 16f, 16f);
+    public static final VoxelShape SOUTH_OUTLINE_SHAPE = Block.box(0f, 0f, 0f, 16f, 16f, 8f);
+    public static final VoxelShape NORTH_OUTLINE_SHAPE = Block.box(0f, 0f, 8f, 16f, 16f, 16f);
 
-    private static final Box UP_BOX = SculkSensorBlock.OUTLINE_SHAPE.getBoundingBox().expand(.01d);
-    private static final Box DOWN_BOX = DOWN_OUTLINE_SHAPE.getBoundingBox().expand(.01d);
-    private static final Box EAST_BOX = EAST_OUTLINE_SHAPE.getBoundingBox().expand(.01d);
-    private static final Box WEST_BOX = WEST_OUTLINE_SHAPE.getBoundingBox().expand(.01d);
-    private static final Box SOUTH_BOX = SOUTH_OUTLINE_SHAPE.getBoundingBox().expand(.01d);
-    private static final Box NORTH_BOX = NORTH_OUTLINE_SHAPE.getBoundingBox().expand(.01d);
+    private static final AABB UP_BOX = SHAPE.bounds().inflate(.01d);
+    private static final AABB DOWN_BOX = DOWN_OUTLINE_SHAPE.bounds().inflate(.01d);
+    private static final AABB EAST_BOX = EAST_OUTLINE_SHAPE.bounds().inflate(.01d);
+    private static final AABB WEST_BOX = WEST_OUTLINE_SHAPE.bounds().inflate(.01d);
+    private static final AABB SOUTH_BOX = SOUTH_OUTLINE_SHAPE.bounds().inflate(.01d);
+    private static final AABB NORTH_BOX = NORTH_OUTLINE_SHAPE.bounds().inflate(.01d);
 
 
     public static double[] getShriekParticleOffsets(BlockState state) {
-        Direction facing = state.get(Properties.FACING);
+        Direction facing = state.getValue(BlockStateProperties.FACING);
 
         double[] offsets = new double[3];
 
@@ -61,7 +62,7 @@ public final class SculkRotationHelper {
         return velocities;
     }
 
-    public static Box getBoxForDirection(Direction direction) {
+    public static AABB getBoxForDirection(Direction direction) {
         return switch (direction) {
             case DOWN -> DOWN_BOX;
             case NORTH -> NORTH_BOX;

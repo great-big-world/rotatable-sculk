@@ -1,16 +1,16 @@
 package dev.creoii.rotatablesculk.registry;
 
 import dev.creoii.rotatablesculk.world.feature.SculkPatchFeature;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.SculkPatchFeatureConfig;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.configurations.SculkPatchConfiguration;
 
 public final class RotatableSculkFeatures {
-    public static final Feature<SculkPatchFeatureConfig> SCULK_PATCH = new SculkPatchFeature(SculkPatchFeatureConfig.CODEC);
+    public static final Feature<SculkPatchConfiguration> SCULK_PATCH = new SculkPatchFeature(SculkPatchConfiguration.CODEC);
 
     public static void register() {
-        Registry.register(Registries.FEATURE, Identifier.of("great_big_world:sculk_patch"), SCULK_PATCH);
+        Registry.register(BuiltInRegistries.FEATURE, Identifier.parse("great_big_world:sculk_patch"), SCULK_PATCH);
     }
 }

@@ -1,15 +1,18 @@
 package dev.creoii.rotatablesculk.mixin;
 
 import dev.creoii.rotatablesculk.world.feature.SculkPatchFeature;
-import net.minecraft.block.*;
-import net.minecraft.block.entity.SculkSpreadManager;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.WorldAccess;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SculkBlock;
+import net.minecraft.world.level.block.SculkShriekerBlock;
+import net.minecraft.world.level.block.SculkSpreader;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.material.Fluids;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -20,60 +23,60 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(SculkBlock.class)
 public abstract class SculkBlockMixin {
     @Shadow
-    private static int getDecay(SculkSpreadManager spreadManager, BlockPos cursorPos, BlockPos catalystPos, int charge) {
+    private static int getDecayPenalty(SculkSpreader spreadManager, BlockPos cursorPos, BlockPos catalystPos, int charge) {
         throw new IllegalStateException();
     }
 
-    @Inject(method = "spread", at = @At("HEAD"), cancellable = true)
-    private void gbw$overrideSculkSpread(SculkSpreadManager.Cursor cursor, WorldAccess world, BlockPos catalystPos, Random random, SculkSpreadManager spreadManager, boolean shouldConvertToBlock, CallbackInfoReturnable<Integer> cir) {
+    @Inject(method = "attemptUseCharge", at = @At("HEAD"), cancellable = true)
+    private void gbw$overrideSculkSpread(SculkSpreader.ChargeCursor cursor, LevelAccessor world, BlockPos catalystPos, RandomSource random, SculkSpreader spreadManager, boolean shouldConvertToBlock, CallbackInfoReturnable<Integer> cir) {
         int i = cursor.getCharge();
-        if (i != 0 && random.nextInt(spreadManager.getSpreadChance()) == 0) {
+        if (i != 0 && random.nextInt(spreadManager.chargeDecayRate()) == 0) {
             BlockPos cursorPos = cursor.getPos();
-            boolean bl = cursorPos.isWithinDistance(catalystPos, spreadManager.getMaxDistance());
+            boolean bl = cursorPos.closerThan(catalystPos, spreadManager.noGrowthRadius());
             if (!bl && shouldNotDecay(world, cursorPos)) {
-                int j = spreadManager.getExtraBlockChance();
+                int j = spreadManager.growthSpawnCost();
                 for (Direction direction : SculkPatchFeature.getRandomizedDirections()) {
                     if (random.nextInt(j) < i) {
-                        BlockPos offset = cursorPos.offset(direction);
-                        BlockState blockState = getExtraBlockState(world, offset, random, spreadManager.isWorldGen(), direction);
-                        if (world.getBlockState(offset).isAir() && blockState.isSideSolidFullSquare(world, offset, direction.getOpposite())) {
-                            world.setBlockState(offset, blockState, 3);
-                            world.playSound(null, cursorPos, blockState.getSoundGroup().getPlaceSound(), SoundCategory.BLOCKS, 1f, 1f);
+                        BlockPos offset = cursorPos.relative(direction);
+                        BlockState blockState = getExtraBlockState(world, offset, random, spreadManager.isWorldGeneration(), direction);
+                        if (world.getBlockState(offset).isAir() && blockState.isFaceSturdy(world, offset, direction.getOpposite())) {
+                            world.setBlock(offset, blockState, 3);
+                            world.playSound(null, cursorPos, blockState.getSoundType().getPlaceSound(), SoundSource.BLOCKS, 1f, 1f);
                             break;
                         }
                     }
                 }
                 cir.setReturnValue(Math.max(0, i - j));
-            } else cir.setReturnValue(random.nextInt(spreadManager.getDecayChance()) != 0 ? i : i - (bl ? 1 : getDecay(spreadManager, cursorPos, catalystPos, i)));
+            } else cir.setReturnValue(random.nextInt(spreadManager.additionalDecayRate()) != 0 ? i : i - (bl ? 1 : getDecayPenalty(spreadManager, cursorPos, catalystPos, i)));
         } else {
             cir.setReturnValue(i);
         }
     }
 
     @Unique
-    private BlockState getExtraBlockState(WorldAccess world, BlockPos pos, Random random, boolean allowShrieker, Direction direction) {
+    private BlockState getExtraBlockState(LevelAccessor world, BlockPos pos, RandomSource random, boolean allowShrieker, Direction direction) {
         BlockState blockState;
         if (random.nextInt(11) == 0) {
-            blockState = Blocks.SCULK_SHRIEKER.getDefaultState().with(SculkShriekerBlock.CAN_SUMMON, allowShrieker);
+            blockState = Blocks.SCULK_SHRIEKER.defaultBlockState().setValue(SculkShriekerBlock.CAN_SUMMON, allowShrieker);
         } else {
-            blockState = Blocks.SCULK_SENSOR.getDefaultState();
+            blockState = Blocks.SCULK_SENSOR.defaultBlockState();
         }
 
-        blockState = blockState.with(Properties.FACING, direction);
+        blockState = blockState.setValue(BlockStateProperties.FACING, direction);
 
-        return blockState.contains(Properties.WATERLOGGED) && !world.getFluidState(pos).isEmpty() ? blockState.with(Properties.WATERLOGGED, true) : blockState;
+        return blockState.hasProperty(BlockStateProperties.WATERLOGGED) && !world.getFluidState(pos).isEmpty() ? blockState.setValue(BlockStateProperties.WATERLOGGED, true) : blockState;
     }
 
     @Unique
-    private static boolean shouldNotDecay(WorldAccess world, BlockPos pos) {
+    private static boolean shouldNotDecay(LevelAccessor world, BlockPos pos) {
         for (Direction direction : SculkPatchFeature.getRandomizedDirections()) {
-            BlockState blockState = world.getBlockState(pos.offset(direction));
-            if (blockState.isAir() || blockState.isOf(Blocks.WATER) && blockState.getFluidState().isOf(Fluids.WATER)) {
+            BlockState blockState = world.getBlockState(pos.relative(direction));
+            if (blockState.isAir() || blockState.is(Blocks.WATER) && blockState.getFluidState().is(Fluids.WATER)) {
                 int i = 0;
 
-                for (BlockPos blockPos : BlockPos.iterate(pos.add(-4, 0, -4), pos.add(4, 2, 4))) {
+                for (BlockPos blockPos : BlockPos.betweenClosed(pos.offset(-4, 0, -4), pos.offset(4, 2, 4))) {
                     BlockState blockState2 = world.getBlockState(blockPos);
-                    if (blockState2.isOf(Blocks.SCULK_SENSOR) || blockState2.isOf(Blocks.SCULK_SHRIEKER)) {
+                    if (blockState2.is(Blocks.SCULK_SENSOR) || blockState2.is(Blocks.SCULK_SHRIEKER)) {
                         ++i;
                     }
 
