@@ -2,7 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "dev.creoii.rotatablesculk.mixin",
-  "compatibilityLevel": "JAVA_24",
+  "compatibilityLevel": "JAVA_21",
   "mixins": [
     "CalibratedSculkSensorBlockMixin",
     "SculkBlockMixin",
