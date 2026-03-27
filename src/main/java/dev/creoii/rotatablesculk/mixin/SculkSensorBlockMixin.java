@@ -10,7 +10,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.InsideBlockEffectApplier;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -83,7 +82,7 @@ public abstract class SculkSensorBlockMixin extends BaseEntityBlock {
     }
 
     @Override
-    protected void entityInside(BlockState state, Level world, BlockPos pos, Entity entity, InsideBlockEffectApplier insideBlockEffectApplier) {
+    protected void entityInside(BlockState state, Level world, BlockPos pos, Entity entity) {
         if (state.getValue(FACING) == Direction.UP)
             return;
         AABB box = SculkRotationHelper.getBoxForDirection(state.getValue(FACING)).move(pos);

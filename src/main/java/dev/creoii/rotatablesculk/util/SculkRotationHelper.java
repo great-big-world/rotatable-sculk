@@ -2,15 +2,14 @@ package dev.creoii.rotatablesculk.util;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.SculkSensorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public final class SculkRotationHelper {
-    public static final VoxelShape SHAPE = Block.column(16f, 0f, 8f);
-    public static final VoxelShape DOWN_OUTLINE_SHAPE = Block.column(16f, 8f, 16f);
+    public static final VoxelShape SHAPE = Block.box(0d, 0d, 0d, 16d, 8d, 16d);
+    public static final VoxelShape DOWN_OUTLINE_SHAPE = Block.box(0d, 8d, 0d, 16d, 16d, 16d);
     public static final VoxelShape EAST_OUTLINE_SHAPE = Block.box(0f, 0f, 0f, 8f, 16f, 16f);
     public static final VoxelShape WEST_OUTLINE_SHAPE = Block.box(8f, 0f, 0f, 16f, 16f, 16f);
     public static final VoxelShape SOUTH_OUTLINE_SHAPE = Block.box(0f, 0f, 0f, 16f, 16f, 8f);
@@ -22,7 +21,6 @@ public final class SculkRotationHelper {
     private static final AABB WEST_BOX = WEST_OUTLINE_SHAPE.bounds().inflate(.01d);
     private static final AABB SOUTH_BOX = SOUTH_OUTLINE_SHAPE.bounds().inflate(.01d);
     private static final AABB NORTH_BOX = NORTH_OUTLINE_SHAPE.bounds().inflate(.01d);
-
 
     public static double[] getShriekParticleOffsets(BlockState state) {
         Direction facing = state.getValue(BlockStateProperties.FACING);

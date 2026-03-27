@@ -3,26 +3,26 @@ package dev.creoii.rotatablesculk.mixin.client;
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.creoii.rotatablesculk.util.ExtendedShriekParticleEffect;
 import dev.creoii.rotatablesculk.util.SculkRotationHelper;
-import net.minecraft.client.renderer.LevelEventHandler;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import org.spongepowered.asm.mixin.Final;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-@Mixin(LevelEventHandler.class)
+@Mixin(LevelRenderer.class)
 public class WorldEventHandlerMixin {
     @Shadow
-    @Final
-    private Level level;
+    @Nullable
+    private ClientLevel level;
 
-    @Redirect(method = "levelEvent", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;addParticle(Lnet/minecraft/core/particles/ParticleOptions;DDDDDD)V", ordinal = 4))
-    private void gbw$fixSculkShriekParticleOffset(Level instance, ParticleOptions particleOptions, double d, double e, double f, double g, double h, double i, @Local(argsOnly = true) BlockPos pos) {
+    @Redirect(method = "levelEvent", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientLevel;addParticle(Lnet/minecraft/core/particles/ParticleOptions;ZDDDDDD)V", ordinal = 0))
+    private void gbw$fixSculkShriekParticleOffset(ClientLevel instance, ParticleOptions particleOptions, boolean bl, double d, double e, double f, double g, double h, double i, @Local(argsOnly = true) BlockPos pos) {
         BlockState state = level.getBlockState(pos);
         double[] offsets = SculkRotationHelper.getShriekParticleOffsets(state);
         if (particleOptions instanceof ExtendedShriekParticleEffect extendedShriekParticleEffect && state.hasProperty(BlockStateProperties.FACING)) {

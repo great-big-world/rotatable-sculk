@@ -10,7 +10,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.InsideBlockEffectApplier;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -29,9 +28,7 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -40,7 +37,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(SculkShriekerBlock.class)
 public abstract class SculkShriekerBlockMixin extends BaseEntityBlock {
-    @Shadow @Final private static VoxelShape SHAPE_COLLISION;
     @Unique private static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
 
     protected SculkShriekerBlockMixin(Properties settings) {
@@ -68,8 +64,8 @@ public abstract class SculkShriekerBlockMixin extends BaseEntityBlock {
     }
 
     @Inject(method = "getOcclusionShape", at = @At("HEAD"), cancellable = true)
-    private void gbw$fixCullingShapeForFacing(BlockState state, CallbackInfoReturnable<VoxelShape> cir) {
-        cir.setReturnValue(getShape(state.getValue(FACING)));
+    private void gbw$fixCullingShapeForFacing(BlockState blockState, BlockGetter blockGetter, BlockPos blockPos, CallbackInfoReturnable<VoxelShape> cir) {
+        cir.setReturnValue(getShape(blockState.getValue(FACING)));
     }
 
     @Inject(method = "stepOn", at = @At("HEAD"), cancellable = true)
@@ -79,7 +75,7 @@ public abstract class SculkShriekerBlockMixin extends BaseEntityBlock {
     }
 
     @Override
-    protected void entityInside(BlockState state, Level world, BlockPos pos, Entity entity, InsideBlockEffectApplier insideBlockEffectApplier) {
+    protected void entityInside(BlockState state, Level world, BlockPos pos, Entity entity) {
         if (state.getValue(FACING) == Direction.UP)
             return;
         AABB box = SculkRotationHelper.getBoxForDirection(state.getValue(FACING)).move(pos);
@@ -107,7 +103,7 @@ public abstract class SculkShriekerBlockMixin extends BaseEntityBlock {
     private static VoxelShape getShape(Direction facing) {
         return switch (facing) {
             case DOWN -> SculkRotationHelper.DOWN_OUTLINE_SHAPE;
-            case UP -> SHAPE_COLLISION;
+            case UP -> SculkRotationHelper.SHAPE;
             case NORTH -> SculkRotationHelper.NORTH_OUTLINE_SHAPE;
             case SOUTH -> SculkRotationHelper.SOUTH_OUTLINE_SHAPE;
             case WEST -> SculkRotationHelper.WEST_OUTLINE_SHAPE;

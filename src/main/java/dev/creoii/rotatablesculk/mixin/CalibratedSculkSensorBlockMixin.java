@@ -1,7 +1,7 @@
 package dev.creoii.rotatablesculk.mixin;
 
+import dev.creoii.rotatablesculk.util.SculkRotationHelper;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.CalibratedSculkSensorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.spongepowered.asm.mixin.*;
@@ -19,10 +19,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(CalibratedSculkSensorBlock.class)
 public abstract class CalibratedSculkSensorBlockMixin extends BaseEntityBlock {
-    @Shadow @Final @Mutable
-    public static EnumProperty<Direction> FACING;
-    @Unique
-    private static final VoxelShape OUTLINE_SHAPE = Block.column(16f, 0f, 8f);
+    @Mutable
+    @Shadow
+    @Final
+    public static DirectionProperty FACING;
 
     protected CalibratedSculkSensorBlockMixin(Properties settings) {
         super(settings);
@@ -40,6 +40,6 @@ public abstract class CalibratedSculkSensorBlockMixin extends BaseEntityBlock {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
-        return OUTLINE_SHAPE;
+        return SculkRotationHelper.SHAPE;
     }
 }
