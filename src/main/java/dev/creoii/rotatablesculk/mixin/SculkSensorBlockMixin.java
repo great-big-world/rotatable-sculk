@@ -83,7 +83,7 @@ public abstract class SculkSensorBlockMixin extends BaseEntityBlock {
     }
 
     @Override
-    protected void entityInside(BlockState state, Level world, BlockPos pos, Entity entity, InsideBlockEffectApplier handler, boolean bl) {
+    protected void entityInside(BlockState state, Level world, BlockPos pos, Entity entity, InsideBlockEffectApplier insideBlockEffectApplier) {
         if (state.getValue(FACING) == Direction.UP)
             return;
         AABB box = SculkRotationHelper.getBoxForDirection(state.getValue(FACING)).move(pos);

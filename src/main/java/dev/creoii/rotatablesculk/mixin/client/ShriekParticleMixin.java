@@ -5,7 +5,6 @@ import dev.creoii.rotatablesculk.util.SculkRotationHelper;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ShriekParticle;
 import net.minecraft.client.particle.SingleQuadParticle;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 import org.joml.Quaternionf;
 import org.spongepowered.asm.mixin.Mixin;
@@ -18,8 +17,8 @@ public abstract class ShriekParticleMixin extends SingleQuadParticle implements 
     @Unique
     private Direction direction;
 
-    protected ShriekParticleMixin(ClientLevel world, double x, double y, double z, TextureAtlasSprite sprite) {
-        super(world, x, y, z, sprite);
+    protected ShriekParticleMixin(ClientLevel clientLevel, double d, double e, double f) {
+        super(clientLevel, d, e, f);
     }
 
     @Override
@@ -36,7 +35,7 @@ public abstract class ShriekParticleMixin extends SingleQuadParticle implements 
         zd = velocities[2];
     }
 
-    @Redirect(method = "extract", at = @At(value = "INVOKE", target = "Lorg/joml/Quaternionf;rotationYXZ(FFF)Lorg/joml/Quaternionf;"))
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lorg/joml/Quaternionf;rotationYXZ(FFF)Lorg/joml/Quaternionf;"))
     private Quaternionf gbw$rotateShriekParticle(Quaternionf instance, float angleY, float angleX, float angleZ) {
         return switch (direction.getAxis()) {
             case X -> instance.rotationXYZ((float)Math.PI, -1.0472f, 0f);
