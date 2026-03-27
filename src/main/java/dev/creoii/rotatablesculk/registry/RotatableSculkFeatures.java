@@ -11,6 +11,6 @@ public final class RotatableSculkFeatures {
     public static final Feature<SculkPatchConfiguration> SCULK_PATCH = new SculkPatchFeature(SculkPatchConfiguration.CODEC);
 
     public static void register() {
-        Registry.register(BuiltInRegistries.FEATURE, ResourceLocation.parse("great_big_world:sculk_patch"), SCULK_PATCH);
+        Registry.register(BuiltInRegistries.FEATURE, ResourceLocation.tryParse("great_big_world:sculk_patch"), SCULK_PATCH);
     }
 }

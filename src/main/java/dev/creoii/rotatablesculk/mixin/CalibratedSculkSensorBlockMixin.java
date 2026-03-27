@@ -39,7 +39,7 @@ public abstract class CalibratedSculkSensorBlockMixin extends BaseEntityBlock {
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         return SculkRotationHelper.SHAPE;
     }
 }
