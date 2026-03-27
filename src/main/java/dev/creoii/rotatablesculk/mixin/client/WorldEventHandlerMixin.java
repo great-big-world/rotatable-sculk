@@ -1,5 +1,7 @@
 package dev.creoii.rotatablesculk.mixin.client;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.creoii.rotatablesculk.util.ExtendedShriekParticleEffect;
 import dev.creoii.rotatablesculk.util.SculkRotationHelper;
@@ -13,7 +15,6 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(LevelRenderer.class)
 public class WorldEventHandlerMixin {
@@ -21,8 +22,8 @@ public class WorldEventHandlerMixin {
     @Nullable
     private ClientLevel level;
 
-    @Redirect(method = "levelEvent", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientLevel;addParticle(Lnet/minecraft/core/particles/ParticleOptions;ZDDDDDD)V", ordinal = 0))
-    private void gbw$fixSculkShriekParticleOffset(ClientLevel instance, ParticleOptions particleOptions, boolean bl, double d, double e, double f, double g, double h, double i, @Local(argsOnly = true) BlockPos pos) {
+    @WrapOperation(method = "levelEvent", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/ClientLevel;addParticle(Lnet/minecraft/core/particles/ParticleOptions;ZDDDDDD)V", ordinal = 0))
+    private void gbw$fixSculkShriekParticleOffset(ClientLevel instance, ParticleOptions particleOptions, boolean bl, double d, double e, double f, double g, double h, double i, Operation<Void> original, @Local(argsOnly = true) BlockPos pos) {
         BlockState state = level.getBlockState(pos);
         double[] offsets = SculkRotationHelper.getShriekParticleOffsets(state);
         if (particleOptions instanceof ExtendedShriekParticleEffect extendedShriekParticleEffect && state.hasProperty(BlockStateProperties.FACING)) {
