@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.SculkShriekerBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.entity.BlockEntityTypes;
 import net.minecraft.world.level.block.entity.SculkShriekerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -87,7 +88,7 @@ public abstract class SculkShriekerBlockMixin extends BaseEntityBlock {
             if (world instanceof ServerLevel serverWorld) {
                 ServerPlayer serverPlayerEntity = SculkShriekerBlockEntity.tryGetPlayer(entity);
                 if (serverPlayerEntity != null) {
-                    serverWorld.getBlockEntity(pos, BlockEntityType.SCULK_SHRIEKER).ifPresent((blockEntity) -> blockEntity.tryShriek(serverWorld, serverPlayerEntity));
+                    serverWorld.getBlockEntity(pos, BlockEntityTypes.SCULK_SHRIEKER).ifPresent((blockEntity) -> blockEntity.tryShriek(serverWorld, serverPlayerEntity));
                 }
             }
         }
